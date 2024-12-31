@@ -119,6 +119,9 @@ class CheckSheetResource extends Resource
                          Tables\Actions\ViewAction::make()->slideOver(),
                          Tables\Actions\EditAction::make(),
                          Tables\Actions\DeleteAction::make(),
+                         Tables\Actions\Action::make('Historial')
+                                              ->url(fn(CheckSheet $record): string => CheckSheetResource::getUrl('history', ['record' => $record]))
+                                              ->icon("heroicon-o-calendar")
                      ])
                      ->bulkActions([
                          Tables\Actions\BulkActionGroup::make([
@@ -143,10 +146,11 @@ class CheckSheetResource extends Resource
 
     public static function getPages(): array {
         return [
-            'index'  => Pages\ListCheckSheets::route('/'),
-            'create' => Pages\CreateCheckSheet::route('/create'),
-            'edit'   => Pages\EditCheckSheet::route('/{record}/edit'),
-            'view'   => Pages\ViewCheckSheet::route('/{record}'),
+            'index'   => Pages\ListCheckSheets::route('/'),
+            'create'  => Pages\CreateCheckSheet::route('/create'),
+            'edit'    => Pages\EditCheckSheet::route('/{record}/edit'),
+            'view'    => Pages\ViewCheckSheet::route('/{record}'),
+            'history' => Pages\HistoryCheckSheet::route('/{record}/history')
         ];
     }
 }
