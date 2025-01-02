@@ -11,6 +11,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Attributes\Computed;
 
 class HistoryCheckSheet extends Page
 {
@@ -20,18 +21,19 @@ class HistoryCheckSheet extends Page
 
     public CheckSheet $record;
 
+    public ?string $startDate = null;
+    public ?string $endDate   = null;
+
+    protected $queryString = ['startDate', 'endDate'];
+
     public function getTitle(): string|Htmlable {
-        return "Historial de " . $this->record->name;
+        return 'Historial de ' . $this->record->name;
     }
 
-    public ?string $startDate;
-    public ?string $endDate;
-
-    public array $dateRange = [];
-    public array $tableData = [];
-
-    public array $headers        = [];
-    public array $availableDates = [];
+    public function mount() {
+        $this->startDate = $this->startDate ?? now()->subDay()->format('Y-m-d');
+        $this->endDate = $this->endDate ?? now()->format('Y-m-d');
+    }
 
     public function form(Form $form): Form {
         return $form
@@ -56,24 +58,16 @@ class HistoryCheckSheet extends Page
             ]);
     }
 
-    public function query() {
-        $this->form->getState();
-        $this->dateRange = [];
-        $this->availableDates = [];
-        $this->tableData = $this->getTableData();
-        $this->headers = array_keys($this->tableData['items'][0]);
-        $period = CarbonPeriod::create(Carbon::parse($this->startDate), Carbon::parse($this->endDate));
-        foreach ($period as $date) {
-            $dateString = $date->format('Y-m-d');
-            $this->dateRange[] = $dateString;
-            if (isset($this->tableData['checks'][$dateString]) ||
-                isset($this->tableData['operatorSignatures'][$dateString])) {
-                $this->availableDates[] = $dateString;
-            }
-        }
+
+    #[Computed]
+    public function dateRange() {
+        return collect(CarbonPeriod::create(Carbon::parse($this->startDate), Carbon::parse($this->endDate)))
+            ->map(fn($date) => $date->format('Y-m-d'))
+            ->toArray();
     }
 
-    public function getTableData(): array {
+    #[Computed]
+    public function tableData() {
         $data = [
             'items'                => [],
             'operatorSignatures'   => [],
@@ -82,7 +76,13 @@ class HistoryCheckSheet extends Page
             'operatorNames'        => []
         ];
 
-        $items = $this->record->dailyChecks;
+        $endDate = Carbon::parse($this->endDate)->addDay()->format('Y-m-d');
+        $items = $this->record->dailyChecks()
+                              ->whereBetween('checked_at', [$this->startDate, $endDate])
+                              ->with('dailyCheckItems.checkStatus')
+                              ->get();
+
+        debug($items);
 
         foreach ($items as $item) {
             $dayOfCheck = Carbon::parse($item->checked_at)->format('Y-m-d');
@@ -90,14 +90,32 @@ class HistoryCheckSheet extends Page
             $data['operatorSignatures'][$dayOfCheck] = $item->operator_signature;
             $data['supervisorSignatures'][$dayOfCheck] = $item->supervisor_signature;
             $data['operatorNames'][$dayOfCheck] = $item->operator_name;
+
             foreach ($item->dailyCheckItems as $checkItem) {
-                $data['items'][] = $checkItem->item;
-                $data['checks'][$dayOfCheck][] = $checkItem->checkStatus?->icon ?? $checkItem->notes;
+                if (!in_array($checkItem->item, $data['items'])) {
+                    $data['items'][] = $checkItem->item;
+                }
+
+                $icon = [
+                    'icon'  => $checkItem->checkStatus?->icon ?? $checkItem->notes,
+                    'color' => $checkItem->checkStatus->color
+                ];
+                $data['checks'][$dayOfCheck][] = $icon;
             }
         }
 
-        debug($data);
-
         return $data;
+    }
+
+    #[Computed]
+    public function headers() {
+        return array_keys($this->tableData['items'][0] ?? []);
+    }
+
+    #[Computed]
+    public function availableDates() {
+        return array_filter($this->dateRange, fn($date) => isset($this->tableData['checks'][$date]) ||
+            isset($this->tableData['operatorSignatures'][$date])
+        );
     }
 }

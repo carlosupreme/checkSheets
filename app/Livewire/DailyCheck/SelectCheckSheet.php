@@ -24,6 +24,7 @@ class SelectCheckSheet extends Component implements HasForms
         return $form
             ->schema([
                 Select::make('check_sheet_id')
+                      ->label('Hoja de chequeo')
                       ->relationship('checkSheet', 'name')
                       ->required(),
             ])
