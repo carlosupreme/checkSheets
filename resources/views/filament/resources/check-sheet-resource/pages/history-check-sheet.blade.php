@@ -50,11 +50,15 @@
                                     class="border border-gray-200 dark:border-gray-700 p-2 text-center">
                                     <div class="flex justify-center items-center">
                                         @if(isset($this->tableData['checks'][$day][$index]))
-                                            <x-dynamic-component
-                                                :component="$this->tableData['checks'][$day][$index]['icon']"
-                                                class="w-6 h-6"
-                                                style="color: {{ $this->tableData['checks'][$day][$index]['color'] }}"
-                                            />
+                                            @if($this->tableData['checks'][$day][$index]['icon'] && $this->tableData['checks'][$day][$index]['color'])
+                                                <x-dynamic-component
+                                                    :component="$this->tableData['checks'][$day][$index]['icon']"
+                                                    class="w-6 h-6"
+                                                    style="color: {{ $this->tableData['checks'][$day][$index]['color'] }}"
+                                                />
+                                            @else
+                                                <span class="text-xs">{{$this->tableData['checks'][$day][$index]['text']}}</span>
+                                            @endif
                                         @else
                                             <span
                                                 class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs">○</span>

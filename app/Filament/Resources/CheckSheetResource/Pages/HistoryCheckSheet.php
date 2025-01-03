@@ -11,6 +11,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Arr;
 use Livewire\Attributes\Computed;
 
 class HistoryCheckSheet extends Page
@@ -31,7 +32,7 @@ class HistoryCheckSheet extends Page
     }
 
     public function mount() {
-        $this->startDate = $this->startDate ?? now()->subDay()->format('Y-m-d');
+        $this->startDate = $this->startDate ?? now()->subWeek()->format('Y-m-d');
         $this->endDate = $this->endDate ?? now()->format('Y-m-d');
     }
 
@@ -66,6 +67,28 @@ class HistoryCheckSheet extends Page
             ->toArray();
     }
 
+
+    private function normalizeArrayKeys(array $items, int $limit): array {
+        if (empty($items)) {
+            return [];
+        }
+
+        $allKeys = [];
+        foreach ($items as $item) {
+            $allKeys = array_unique(array_merge($allKeys, array_keys($item)));
+        }
+
+        $normalizedItems = array_map(function ($item) use ($allKeys) {
+            return Arr::only(array_merge(array_fill_keys($allKeys, ''), $item), $allKeys);
+        }, $items);
+
+        if (count($normalizedItems) > $limit) {
+            $normalizedItems = array_slice($normalizedItems, count($normalizedItems) - $limit, $limit);
+        }
+
+        return $normalizedItems;
+    }
+
     #[Computed]
     public function tableData() {
         $data = [
@@ -82,8 +105,6 @@ class HistoryCheckSheet extends Page
                               ->with('dailyCheckItems.checkStatus')
                               ->get();
 
-        debug($items);
-
         foreach ($items as $item) {
             $dayOfCheck = Carbon::parse($item->checked_at)->format('Y-m-d');
             $data['checks'][$dayOfCheck] = [];
@@ -92,17 +113,20 @@ class HistoryCheckSheet extends Page
             $data['operatorNames'][$dayOfCheck] = $item->operator_name;
 
             foreach ($item->dailyCheckItems as $checkItem) {
-                if (!in_array($checkItem->item, $data['items'])) {
-                    $data['items'][] = $checkItem->item;
-                }
+                $data['items'][] = $checkItem->item;
 
-                $icon = [
-                    'icon'  => $checkItem->checkStatus?->icon ?? $checkItem->notes,
-                    'color' => $checkItem->checkStatus->color
+                $value = [
+                    'icon'  => $checkItem->checkStatus?->icon,
+                    'color' => $checkItem->checkStatus?->color,
+                    'text'  => $checkItem->notes
                 ];
-                $data['checks'][$dayOfCheck][] = $icon;
+
+                $data['checks'][$dayOfCheck][] = $value;
             }
         }
+
+        $data['items'] = $this->normalizeArrayKeys($data['items'], count(collect($data['checks'])->first()));
+        debug($data);
 
         return $data;
     }

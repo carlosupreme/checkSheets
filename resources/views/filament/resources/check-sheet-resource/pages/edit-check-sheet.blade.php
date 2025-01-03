@@ -1,7 +1,7 @@
 <x-filament-panels::page>
-    <livewire:check-sheet.edit-check-sheet></livewire:check-sheet.edit-check-sheet>
+    <livewire:check-sheet.edit-check-sheet :record="$record"></livewire:check-sheet.edit-check-sheet>
 
-    <livewire:update-items></livewire:update-items>
+    <livewire:update-items :record="$record"></livewire:update-items>
 
     <div class="w-1/3">
         <x-filament::button wire:click="update">

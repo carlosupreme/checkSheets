@@ -6,16 +6,14 @@ use App\Models\CheckSheet;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use Illuminate\Contracts\View\View;
 
 class EditCheckSheet extends Component implements HasForms
 {
@@ -25,8 +23,8 @@ class EditCheckSheet extends Component implements HasForms
 
     public CheckSheet $record;
 
-    public function mount(Request $request): void {
-        $this->record = CheckSheet::findOrFail($request->route('record'));
+    public function mount(CheckSheet $record): void {
+        $this->record = $record;
         $this->form->fill($this->record->attributesToArray());
     }
 

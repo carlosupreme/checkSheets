@@ -12,6 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
@@ -97,15 +98,22 @@ class CreateDailyCheck extends Component implements HasForms
     public function allSaved(): void {
         Notification::make()
                     ->success()
+                    ->icon('heroicon-o-document-text')
+                    ->iconColor('success')
                     ->title('Chequeo diario guardado')
                     ->send();
-
 
         Notification::make()
                     ->title('Chequeo diario guardado')
                     ->success()
                     ->icon('heroicon-o-document-text')
                     ->iconColor('success')
+                    ->body(auth()->user()->name . ' ha completado un chequeo diario para la hoja ' . $this->checkSheet->name)
+                    ->actions([
+                        Action::make('Ver')
+                              ->button()
+                              ->url("/admin/check-sheets/{$this->checkSheet->id}/history?startDate=" . now()->format('Y-m-d') . "&endDate=" . now()->format('Y-m-d'))
+                    ])
                     ->sendToDatabase(User::whereHas('roles', fn($q) => $q
                         ->where('name', 'admin')
                         ->orWhere('name', 'super_admin')

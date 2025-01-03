@@ -3,7 +3,6 @@
 namespace App\Livewire\DailyCheck;
 
 use App\Models\CheckStatus;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CheckStatusSelect extends Component

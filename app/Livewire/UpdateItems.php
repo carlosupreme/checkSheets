@@ -19,11 +19,8 @@ class UpdateItems extends Component
 
     public $items = [];
 
-    public function mount(Request $request) {
-        $this->items = CheckSheet::with('items')->findOrFail($request->route('record'))
-            ->items;
-
-        debug($this->items);
+    public function mount(CheckSheet $record) {
+        $this->items = $record->items;
 
         $firstItem = $this->items->first();
 
@@ -129,7 +126,7 @@ class UpdateItems extends Component
             $this->updateItems($id);
         }
 
-        $this->dispatch('checkSheetItemsUpdated');
+        $this->dispatch('checkSheetItemsUpdated', $id);
     }
 
     public function createItems(int $id): void {

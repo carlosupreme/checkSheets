@@ -7,6 +7,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Livewire\Component;
+use Illuminate\Database\Eloquent\Builder;
 
 class SelectCheckSheet extends Component implements HasForms
 {
@@ -25,7 +26,9 @@ class SelectCheckSheet extends Component implements HasForms
             ->schema([
                 Select::make('check_sheet_id')
                       ->label('Hoja de chequeo')
-                      ->relationship('checkSheet', 'name')
+                      ->relationship(name            : 'checkSheet',
+                                     titleAttribute  : 'name',
+                                     modifyQueryUsing: fn(Builder $query) => $query->where('is_published', true))
                       ->required(),
             ])
             ->statePath('data')
