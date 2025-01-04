@@ -3,6 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\CheckSheetItem;
+use App\Models\CheckStatus;
+use App\Models\ItemAlert;
+use Filament\Notifications\Notification;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -11,6 +14,8 @@ class CreateItems extends Component
     public $columns = [];
     public $rows    = [];
 
+    public $alerts = [];
+
     public $editingCell   = null;
     public $newColumnName = '';
 
@@ -18,21 +23,22 @@ class CreateItems extends Component
         $this->init();
     }
 
-    private function init() {
+    private function init(): void {
         $defaultColumns = ['Item de chequeo', 'Frecuencia', 'Metodo de chequeo', 'Criterio de determinacion', 'Observaciones'];
         $this->columns = $defaultColumns;
         $this->addRow();
     }
 
 
-    public function addColumn() {
-        $this->newColumnName = 'Column ' . (count($this->columns) + 1);
+    public function addColumn(): void {
+        $this->newColumnName = 'Columna ' . (count($this->columns) + 1);
         $this->columns[] = $this->newColumnName;
         $this->updateRows();
     }
 
-    public function addRow() {
+    public function addRow(): void {
         $this->rows[] = array_fill(0, count($this->columns), '');
+        $this->alerts[] = [];
     }
 
     public function removeColumn($index) {
@@ -44,15 +50,39 @@ class CreateItems extends Component
         }
     }
 
-    public function removeRow($index) {
+    public function removeRow($index): void {
         unset($this->rows[$index]);
         $this->rows = array_values($this->rows);
+        unset($this->alerts[$index]);
+        $this->alerts = array_values($this->alerts);
+    }
+
+    public function addAlert($index, $selectedStatus, $customText): void {
+        if (is_null($selectedStatus)) {
+            $this->alerts[$index] = [
+                'customText' => $customText
+            ];
+        } else {
+            $this->alerts[$index] = [
+                'selectedStatus' => $selectedStatus
+            ];
+        }
+
+        $this->dispatch("close-modal", id: "addAlertModal");
+        Notification::make()
+                    ->title('Alerta establecida correctamente')
+                    ->success()
+                    ->send();
     }
 
     private function updateRows() {
         $this->rows = array_map(function ($row) {
             return array_pad($row, count($this->columns), '');
         }, $this->rows);
+
+        $this->alerts = array_map(function ($alert) {
+            return array_pad($alert, count($this->columns), '');
+        }, $this->alerts);
     }
 
     public function updateCell($rowIndex, $colIndex, $value = null) {
@@ -80,21 +110,26 @@ class CreateItems extends Component
         $this->columns[$index] = $name;
     }
 
-    /**
-     * @throws \Exception
-     */
     #[On('checkSheetCreated')]
     public function createItems(int $id): void {
         collect($this->convertRowsToJsons())->map(function ($properties, $i) {
             return [
                 'order'      => $i + 1,
+                'alert' => $this->alerts[$i],
                 'properties' => $properties
             ];
         })->each(function ($itemData) use ($id) {
-            CheckSheetItem::create([
+            $checkSheetItem = CheckSheetItem::create([
                 'check_sheet_id' => $id,
                 'order'          => $itemData['order'],
                 'properties'     => $itemData['properties']
+            ]);
+
+            ItemAlert::create([
+                'check_sheet_item_id' => $checkSheetItem->id,
+                'check_status_id'     => $itemData['alert']['selectedStatus'] ?? null,
+                'custom'              => $itemData['alert']['customText'] ?? null,
+                'contador'            => 0
             ]);
         });
 
@@ -103,15 +138,13 @@ class CreateItems extends Component
 
     private function convertRowsToJsons(): array {
         return array_map(function ($row) {
-            if (count($row) !== count($this->columns)) {
-                throw new \InvalidArgumentException('Number of columns does not match row length.');
-            }
             return array_combine($this->columns, $row);
         }, $this->rows);
     }
 
 
     public function render() {
-        return view('livewire.create-items');
+        $statuses = CheckStatus::select('id', 'name', 'icon', 'color')->get();
+        return view('livewire.create-items', compact('statuses'));
     }
 }

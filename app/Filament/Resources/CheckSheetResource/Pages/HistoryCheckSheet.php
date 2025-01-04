@@ -4,15 +4,20 @@ namespace App\Filament\Resources\CheckSheetResource\Pages;
 
 use App\Filament\Resources\CheckSheetResource;
 use App\Models\CheckSheet;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Symfony\Component\HttpFoundation\Response;
 
 class HistoryCheckSheet extends Page
 {
@@ -61,7 +66,7 @@ class HistoryCheckSheet extends Page
 
 
     #[Computed]
-    public function dateRange() {
+    public function dateRange(): array {
         return collect(CarbonPeriod::create(Carbon::parse($this->startDate), Carbon::parse($this->endDate)))
             ->map(fn($date) => $date->format('Y-m-d'))
             ->toArray();
@@ -90,7 +95,7 @@ class HistoryCheckSheet extends Page
     }
 
     #[Computed]
-    public function tableData() {
+    public function tableData(): array {
         $data = [
             'items'                => [],
             'operatorSignatures'   => [],
@@ -126,20 +131,57 @@ class HistoryCheckSheet extends Page
         }
 
         $data['items'] = $this->normalizeArrayKeys($data['items'], count(collect($data['checks'])->first()));
-        debug($data);
 
         return $data;
     }
 
     #[Computed]
-    public function headers() {
+    public function headers(): array {
         return array_keys($this->tableData['items'][0] ?? []);
     }
 
     #[Computed]
-    public function availableDates() {
+    public function availableDates(): array {
         return array_filter($this->dateRange, fn($date) => isset($this->tableData['checks'][$date]) ||
             isset($this->tableData['operatorSignatures'][$date])
+        );
+    }
+
+    protected function getActions(): array {
+        return [
+            Action::make('exportPdf')
+                  ->label('Exportar a PDF')
+                  ->icon('heroicon-o-document-arrow-down')
+                  ->action(fn() => $this->exportPdf()),
+        ];
+    }
+
+    private function exportPdf(): Response {
+        $headers = $this->headers;
+        $tableData = $this->tableData;
+        $availableDates = $this->availableDates;
+        $record = $this->record;
+
+        $dateChunks = array_chunk($availableDates, 15);
+        $chunks = array_map(function ($dates) {
+            return ['dates' => $dates];
+        }, $dateChunks);
+
+        $view = 'filament.resources.check-sheet-resource.pages.pdf-check-sheet';
+        $pdf = Pdf::loadView($view, compact('chunks', 'headers', 'tableData', 'record'))
+                  ->setPaper('a4', 'landscape')
+                  ->setOption('isHtml5ParserEnabled', true)
+                  ->setOption('isPhpEnabled', true)
+                  ->setOption('isRemoteEnabled', true);
+
+
+        // Create a unique file name
+        $fileName = 'checksheet-history-' . Str::random(10) . '.pdf';
+
+        // Download the pdf
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            $fileName
         );
     }
 }

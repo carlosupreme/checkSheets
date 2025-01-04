@@ -12,6 +12,10 @@
         @if($this->hasItems())
             <livewire:daily-check.check-items :items=" $checkSheet->items"/>
 
+            <div class="my-5">
+                {!! $this->checkSheet->notes !!}
+            </div>
+
             <form>
                 {{ $this->form }}
             </form>

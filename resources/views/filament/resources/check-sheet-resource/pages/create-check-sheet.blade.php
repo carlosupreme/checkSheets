@@ -9,4 +9,5 @@
             {{ __('Create') }}
         </x-filament::button>
     </div>
+
 </x-filament-panels::page>

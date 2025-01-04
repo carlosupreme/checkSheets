@@ -92,7 +92,7 @@ class CheckSheetResource extends Resource
                                    ->state(fn(CheckSheet $checkSheet) => $checkSheet->items->count()),
                          ToggleColumn::make('is_published')->label("Publicada"),
                          TextColumn::make('notes')->html()
-                                   ->label('Observaciones')
+                                   ->label('Observaciones')->wrap()
                                    ->toggleable(isToggledHiddenByDefault: true),
                          TextColumn::make('created_at')
                                    ->sortable()
