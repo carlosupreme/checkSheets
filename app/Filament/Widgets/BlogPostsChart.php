@@ -11,10 +11,9 @@ class BlogPostsChart extends ChartWidget
     protected static ?string $heading = 'Equipos con mas problemas';
 
     protected static ?string $pollingInterval = null; // Disable auto-refresh
-    protected static string $color = 'info';
+    protected static string  $color           = 'info';
 
-    protected function getData(): array
-    {
+    protected function getData(): array {
         //Mock Data
         $data = [
             ['equipment' => 'Caldera (CM-CAL-01)', 'issues' => 15],
@@ -27,8 +26,8 @@ class BlogPostsChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Numero de alertas',
-                    'data' => collect($data)->pluck('issues')->toArray(),
+                    'label'           => 'Numero de alertas',
+                    'data'            => collect($data)->pluck('issues')->toArray(),
                     'backgroundColor' => [
                         'rgba(54, 162, 235, 0.8)', //blue
                         'rgba(255, 99, 132, 0.8)', //red
@@ -36,8 +35,8 @@ class BlogPostsChart extends ChartWidget
                         'rgba(75, 192, 192, 0.8)', //green
                         'rgba(153, 102, 255, 0.8)', //purple
                     ],
-                    'borderWidth' => 1,
-                    'borderColor' => [
+                    'borderWidth'     => 1,
+                    'borderColor'     => [
                         'rgb(54, 162, 235)',
                         'rgb(255, 99, 132)',
                         'rgb(255, 205, 86)',
@@ -46,12 +45,21 @@ class BlogPostsChart extends ChartWidget
                     ]
                 ],
             ],
-            'labels' => collect($data)->pluck('equipment')->toArray(),
+            'labels'   => collect($data)->pluck('equipment')->toArray(),
         ];
     }
 
-    protected function getType(): string
-    {
+    protected function getFilters(): ?array {
+        return [
+            'ultima '   => 'ultima semana',
+            'ultimo mes'      => 'ultimo mes',
+            'ultima quincena' => 'ultima quincena',
+            'hoy'             => 'hoy',
+            'siempre'         => 'siempre'
+        ];
+    }
+
+    protected function getType(): string {
         return 'bar';
     }
 }

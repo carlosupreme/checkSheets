@@ -80,7 +80,7 @@ class CheckSheetResource extends Resource
     public static function table(Table $table): Table {
         return $table->searchable()->striped()
                      ->columns([
-                         TextColumn::make('name')->translateLabel()->searchable()->sortable(),
+                         TextColumn::make('name')->label('Nombre')->searchable()->sortable(),
                          TextColumn::make('equipment_tag')->label('Tag')->searchable()->sortable(),
                          TextColumn::make('equipment_area')
                                    ->label('Area')
@@ -92,7 +92,7 @@ class CheckSheetResource extends Resource
                                    ->state(fn(CheckSheet $checkSheet) => $checkSheet->items->count()),
                          ToggleColumn::make('is_published')->label("Publicada"),
                          TextColumn::make('notes')->html()
-                                   ->label('Observaciones')->wrap()
+                                   ->label('Observaciones')
                                    ->toggleable(isToggledHiddenByDefault: true),
                          TextColumn::make('created_at')
                                    ->sortable()
