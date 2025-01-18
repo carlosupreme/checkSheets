@@ -20,7 +20,7 @@ return new class extends Migration {
      */
     public function down(): void {
         Schema::table('daily_check_items', function (Blueprint $table) {
-            $table->foreignIdFor(CheckStatus::class)->change()->constrained()->nullOnDelete();
+            $table->foreignIdFor(CheckStatus::class)->change()->constrained();
         });
     }
 };

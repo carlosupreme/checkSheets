@@ -14,7 +14,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,13 +29,13 @@ class HistoryCheckSheet extends Page
     public ?string $startDate = null;
     public ?string $endDate   = null;
 
-    protected $queryString = ['startDate', 'endDate'];
+    protected array $queryString = ['startDate', 'endDate'];
 
     public function getTitle(): string|Htmlable {
         return 'Historial de ' . $this->record->name;
     }
 
-    public function mount() {
+    public function mount(): void {
         $this->startDate = $this->startDate ?? now()->subWeek()->format('Y-m-d');
         $this->endDate = $this->endDate ?? now()->format('Y-m-d');
     }

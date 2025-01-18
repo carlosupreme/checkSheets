@@ -18,8 +18,8 @@ return new class extends Migration {
             $table->string('equipment_name')->index();
             $table->longText('notes')->nullable();
             $table->boolean('is_published')->default(false);
-            $table->foreignIdFor(User::class, 'created_by')->constrained()->nullOnDelete();
-            $table->foreignIdFor(User::class, 'updated_by')->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class, 'created_by');
+            $table->foreignIdFor(User::class, 'updated_by');
             $table->timestamps();
             $table->softDeletes();
         });

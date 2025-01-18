@@ -14,7 +14,7 @@ return new class extends Migration {
         Schema::create('daily_checks', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(CheckSheet::class)->constrained()->restrictOnDelete();
-            $table->foreignIdFor(User::class, 'operator_id')->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class, 'operator_id')->constrained();
             $table->string('operator_name');
             $table->timestamp('checked_at');
             $table->longText('operator_signature');

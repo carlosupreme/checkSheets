@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignIdFor(DailyCheck::class)->constrained()->cascadeOnDelete();
             $table->json("item");
             $table->text('notes')->nullable();
-            $table->foreignIdFor(CheckStatus::class)->constrained()->nullOnDelete();
+            $table->foreignIdFor(CheckStatus::class)->constrained();
             $table->timestamps();
         });
     }

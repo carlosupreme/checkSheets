@@ -16,8 +16,8 @@ return new class extends Migration {
             $table->string('color');
             $table->string('icon');
             $table->string('description')->nullable();
-            $table->foreignIdFor(User::class, 'created_by')->constrained()->nullOnDelete();
-            $table->foreignIdFor(User::class, 'updated_by')->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class, 'created_by')->constrained();
+            $table->foreignIdFor(User::class, 'updated_by')->constrained();
             $table->timestamps();
             $table->softDeletes();
         });
