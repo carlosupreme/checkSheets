@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->brandLogo(asset('/lg.png'))
             ->darkModeBrandLogo(asset('/dark.png'))
-            ->brandLogoHeight("70px")
+            ->brandLogoHeight("50px")
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth("300px")
             ->databaseNotifications()
